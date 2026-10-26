@@ -1,0 +1,1 @@
+ALTER TABLE `provisioning_jobs` ADD `schema_hash` text DEFAULT '' NOT NULL;

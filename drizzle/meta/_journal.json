@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1792986630408,
+      "tag": "0000_conscious_karma",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1792999022926,
+      "tag": "0001_powerful_skin",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1793000536749,
+      "tag": "0002_cute_timeslip",
+      "breakpoints": true
+    }
+  ]
+}

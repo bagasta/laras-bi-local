@@ -1,0 +1,16 @@
+node_modules/
+*.tar.gz
+.env
+.env.*
+!.env.example
+
+.laras/
+
+dist/
+coverage/
+*.log
+*.sqlite*
+*.db
+*.enc
+*.key
+node_modules/
