@@ -19,6 +19,7 @@ import { advanceProvisioning } from "../server/services/cloud-setup.js";
 import { createApp } from "../server/app.js";
 import { AppError } from "../server/http.js";
 import { rpcFor } from "../server/infrastructure/supabase.js";
+import { dropFiles, projectCSV, textFile } from "./fixtures/upload-dom.mjs";
 const sql =
   fs.readFileSync("supabase/migrations/001_laras.sql", "utf8") +
   "\n" +
@@ -662,7 +663,7 @@ test("browser connection form creates one cloud project and resumes queued docum
     return value.data;
   };
   const source =
-    "const {products:seedProducts,production:seedProduction,initialFiles,seedOrders,parseCSV,detectMapping,normalizeRows,upsertOrders,metricSummary}=window.fixture;const apiRequest=window.apiRequest;const createUploadManager=window.createUploadManager;const createAdaptiveDashboard=window.createAdaptiveDashboard;\n" +
+    "const {detectMapping,metricSummary}=window.fixture;const apiRequest=window.apiRequest;const createUploadManager=window.createUploadManager;const createAdaptiveDashboard=window.createAdaptiveDashboard;\n" +
     fs.readFileSync("web/app.js", "utf8").replace(/^import[^\n]+\n/gm, "");
   const wait = async (predicate) => {
     const end = Date.now() + 7000;
@@ -685,11 +686,11 @@ test("browser connection form creates one cloud project and resumes queued docum
     await wait(() =>
       w.document
         .querySelector(".sidebar-status")
-        ?.textContent.includes("Mode demo"),
+        ?.textContent.includes("Belum terhubung"),
     );
     click('[data-action="upload"]');
     assert.equal(w.document.querySelector("#multi-file-input").multiple, true);
-    click('[data-action="batch-sample"]');
+    dropFiles(w, [textFile("proyek.csv", projectCSV)]);
     click('[data-action="cloud-connect"]');
     w.document.querySelector("#cloud-token").value = "sbp_fake_fixture_token";
     click("#cloud-check-token");

@@ -1,9 +1,4 @@
-import {
-  buildAdaptiveModel,
-  demoDatasets,
-  formatAdaptive,
-  adaptiveReply,
-} from "./adaptive.js";
+import { formatAdaptive } from "./adaptive.js";
 export function createAdaptiveDashboard(options) {
   const {
     state,
@@ -15,9 +10,7 @@ export function createAdaptiveDashboard(options) {
     render,
     go,
   } = options;
-  let examples = [];
   let sequence = 0;
-  const active = () => !!state.backend?.backend || state.adaptive !== undefined;
   const value = (n, format = "number", currency = "IDR") =>
     formatAdaptive(n, format, currency);
   const period = (model) =>
@@ -27,26 +20,6 @@ export function createAdaptiveDashboard(options) {
         : model.period.from + " – " + model.period.to
       : "Seluruh data";
   const datasetOptions = () => state.datasets || [];
-  function initDemo() {
-    examples = demoDatasets(options.orders());
-    state.workspaceName = "Ruang kerja contoh";
-    state.datasets = examples.map(({ rows, ...d }) => d);
-    state.demoDatasetId = state.demoDatasetId || examples[0].id;
-    const chosen =
-      examples.find((d) => d.id === state.demoDatasetId) || examples[0];
-    state.adaptive = buildAdaptiveModel(chosen, state.adaptiveView || {});
-    state.files = examples.map((d) => ({
-      id: "seed-" + d.id,
-      name: d.name,
-      type: "CSV",
-      domain: "Data contoh",
-      rows: d.row_count,
-      date: "Data contoh",
-      size: "Contoh",
-    }));
-    options.setInsights(state.adaptive.findings);
-    state.resolved = [];
-  }
   function onBootstrap(data) {
     state.datasets = data.datasets || [];
     state.adaptive = data.adaptiveDashboard || null;
@@ -73,26 +46,13 @@ export function createAdaptiveDashboard(options) {
   async function load() {
     const id = ++sequence;
     try {
-      if (!state.cloud) {
-        const chosen =
-          examples.find((d) => d.id === state.demoDatasetId) || examples[0];
-        state.adaptive = buildAdaptiveModel(chosen, {
-          ...state.adaptiveView,
-          offset: state.adaptiveOffset || 0,
-        });
-        state.adaptiveView = {
-          ...state.adaptive.selection,
-          datasetId: chosen.id,
-        };
-        options.setInsights(state.adaptive.findings);
-      } else {
-        const data = await api("/adaptive-dashboard?" + query());
-        if (id !== sequence) return;
-        state.adaptive = data;
-        state.datasets = data.datasets;
-        state.adaptiveView = { ...data.selection, datasetId: data.dataset.id };
-        options.setInsights(data.findings || []);
-      }
+      if (!state.cloud) return;
+      const data = await api("/adaptive-dashboard?" + query());
+      if (id !== sequence) return;
+      state.adaptive = data;
+      state.datasets = data.datasets;
+      state.adaptiveView = { ...data.selection, datasetId: data.dataset.id };
+      options.setInsights(data.findings || []);
       render();
     } catch (error) {
       options.toast(error.message, true);
@@ -193,12 +153,12 @@ export function createAdaptiveDashboard(options) {
     }</tbody></table></div>${full ? `<div class="table-footer"><span>${data.total ? data.offset + 1 : 0}–${data.offset + rows.length} dari ${data.total}</span><div><button class="btn btn-small" data-action="adaptive-previous" ${!data.offset ? "disabled" : ""}>Sebelumnya</button><button class="btn btn-small" data-action="adaptive-next" ${data.offset + 50 >= data.total ? "disabled" : ""}>Berikutnya</button></div></div>` : ""}</section>`;
   }
   function empty() {
-    return `<div class="page-heading"><h1>Ringkasan data</h1><button class="btn btn-primary" data-action="upload">${icon("plus", 14)}Unggah data</button></div><section class="panel adaptive-empty">${icon("data", 32)}<h2>Dashboard mengikuti data Anda</h2><p>Unggah dokumen untuk membentuk metrik dan grafik.</p><button class="btn" data-action="upload">Pilih dokumen</button></section>`;
+    return `<div class="page-heading"><h1>Ringkasan data</h1><button class="btn btn-primary" data-action="upload">${icon("plus", 14)}Unggah data</button></div>${options.setup?.() || ""}<section class="panel adaptive-empty"><h2>Belum ada metrik</h2><p>Unggah dokumen. Metrik dan grafik dibentuk dari kolom yang ada.</p><button class="btn" data-action="upload">Pilih dokumen</button></section>`;
   }
   function overview() {
     const model = state.adaptive;
     if (!model) return empty();
-    return `<div class="page-heading"><div><h1>${escape(model.context)}</h1></div><button class="btn btn-primary" data-action="upload">${icon("plus", 15)}Unggah data</button></div>${options.tabs()}${controls()}<div class="demo-strip"><span><i class="live-dot"></i>${state.cloud ? "Data bisnis" : "Data contoh"}</span><span class="separator"></span><span>${model.table.total} baris</span><span class="separator"></span><span>${escape(model.dataset.name)}</span></div>${options.priorities()}<div class="kpi-grid adaptive-kpi-grid">${model.kpis.map((k, index) => `<article class="kpi"><div class="kpi-label">${escape(k.label)}<button class="icon-button" data-adaptive-kpi="${index}" aria-label="Sumber ${escape(k.label)}">${icon("info", 14)}</button></div><div class="kpi-value" title="${escape(value(k.value, k.format, k.currency))}">${escape(k.format === "currency" && k.currency === "IDR" && Math.abs(k.value) >= 1e6 ? "Rp " + (k.value / 1e6).toLocaleString("id-ID", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " jt" : value(k.value, k.format, k.currency))}</div><div class="kpi-bottom"><span>${k.aggregation === "sum" ? "Penjumlahan" : k.aggregation === "avg" ? "Rata-rata" : k.aggregation === "distinct" ? "Nilai unik" : "Jumlah"}</span></div></article>`).join("")}</div><div class="adaptive-chart-grid ${!model.trend.points.length || !model.breakdown.items.length ? "single" : ""}">${trend()}${breakdown()}</div>${table()}`;
+    return `<div class="page-heading"><div><h1>${escape(model.context)}</h1></div><button class="btn btn-primary" data-action="upload">${icon("plus", 15)}Unggah data</button></div>${options.tabs()}${controls()}<div class="demo-strip"><span><i class="live-dot"></i>Data bisnis</span><span class="separator"></span><span>${model.table.total} baris</span><span class="separator"></span><span>${escape(model.dataset.name)}</span></div>${options.setup?.() || ""}${options.priorities()}<div class="kpi-grid adaptive-kpi-grid">${model.kpis.map((k, index) => `<article class="kpi"><div class="kpi-label">${escape(k.label)}<button class="icon-button" data-adaptive-kpi="${index}" aria-label="Sumber ${escape(k.label)}">${icon("info", 14)}</button></div><div class="kpi-value" title="${escape(value(k.value, k.format, k.currency))}">${escape(k.format === "currency" && k.currency === "IDR" && Math.abs(k.value) >= 1e6 ? "Rp " + (k.value / 1e6).toLocaleString("id-ID", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " jt" : value(k.value, k.format, k.currency))}</div><div class="kpi-bottom"><span>${k.aggregation === "sum" ? "Penjumlahan" : k.aggregation === "avg" ? "Rata-rata" : k.aggregation === "distinct" ? "Nilai unik" : "Jumlah"}</span></div></article>`).join("")}</div><div class="adaptive-chart-grid ${!model.trend.points.length || !model.breakdown.items.length ? "single" : ""}">${trend()}${breakdown()}</div>${table()}`;
   }
   function records() {
     return state.adaptive
@@ -211,7 +171,6 @@ export function createAdaptiveDashboard(options) {
         .querySelector("#adaptive-source" + suffix)
         ?.addEventListener("change", (e) => {
           state.adaptiveView = { datasetId: e.target.value, days: "all" };
-          state.demoDatasetId = e.target.value;
           state.adaptiveOffset = 0;
           e.target.disabled = true;
           load();
@@ -266,9 +225,6 @@ export function createAdaptiveDashboard(options) {
     return false;
   }
   return {
-    answerDemo: (question) => adaptiveReply(state.adaptive, question),
-    active,
-    initDemo,
     onBootstrap,
     query,
     overview,

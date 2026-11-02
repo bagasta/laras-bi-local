@@ -15,6 +15,26 @@ npm start
 
 Buka **http://127.0.0.1:3000**. Konfigurasi `.env` tidak diperlukan untuk menjalankan aplikasi. Kunci enkripsi lokal dan database pengaturan dibuat otomatis di `.laras/`.
 
+## Penyiapan pertama
+
+Laras tidak memuat data contoh. Sebelum Supabase terhubung dan data diunggah, dashboard kosong dan panel *Belum ada data bisnis* memandu tiga langkah:
+
+1. **Hubungkan Supabase**: wajib untuk memproses dan menyimpan data bisnis Anda.
+2. **Unggah data bisnis**: CSV, Excel, PDF, Word, PowerPoint, TXT, atau MD.
+3. **Hubungkan AI** (opsional): ChatGPT atau OpenRouter. Tanpa AI, Chat with Data memakai analisis berbasis aturan.
+
+## Di mana data disimpan
+
+"Lokal" berarti aplikasi berjalan di komputer Anda. Data bisnis tidak disimpan di komputer Anda.
+
+| Data | Lokasi |
+| --- | --- |
+| Data bisnis dan dokumen asli | Proyek Supabase milik Anda (cloud) |
+| Token Supabase, kredensial AI, pengaturan | Komputer ini, terenkripsi di `.laras/` |
+| Pertanyaan Chat with Data | Jika AI terhubung, pertanyaan dan potongan data relevan (maks. ±24 KB per pertanyaan) dikirim ke ChatGPT/OpenRouter |
+
+Cadangkan `.laras/master.key`. Tanpa berkas ini, kredensial tersimpan tidak dapat dibuka kembali. Ringkasan yang sama tersedia di **Pengaturan → Lokasi data**.
+
 ## Hubungkan ChatGPT
 
 1. Buka **Pengaturan → Continue with ChatGPT**.
