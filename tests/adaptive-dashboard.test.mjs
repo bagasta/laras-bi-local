@@ -6,9 +6,9 @@ import * as fixture from "../web/data.js";
 import {
   inferColumns,
   buildAdaptiveModel,
-  demoDatasets,
   adaptiveReply,
 } from "../web/adaptive.js";
+import { sampleDatasets } from "./fixtures/adaptive-datasets.mjs";
 import { createAdaptiveDashboard } from "../web/dashboard.js";
 import { createUploadManager } from "../web/uploads.js";
 function data(headers, values) {
@@ -23,7 +23,7 @@ function data(headers, values) {
 }
 
 test("metrics follow uploaded columns across projects, staff, and reservations", () => {
-  const examples = demoDatasets();
+  const examples = sampleDatasets();
   const project = buildAdaptiveModel(examples[0]);
   assert.equal(project.context, "Proyek dan layanan");
   assert.equal(project.kpis[0].value, 91000000);
@@ -69,7 +69,7 @@ test("numeric identifiers are not summed and chart types follow available data",
 });
 
 test("metric choices, date ranges, and answer facts remain tied to the selected dataset", () => {
-  const dataset = demoDatasets()[0];
+  const dataset = sampleDatasets()[0];
   const defaultModel = buildAdaptiveModel(dataset);
   const hours = defaultModel.options.metrics.find(
     (c) => c.label === "Jam kerja",
@@ -103,7 +103,7 @@ test("invalid dates are reported without discarding original data", () => {
   assert.equal(model.table.rows[9].values[0], "bukan tanggal");
 });
 
-test("connected demo presents a neutral workspace and switches its metrics without commerce menus", async () => {
+test("a backend without a database shows an empty dashboard and no sample data", async () => {
   const dom = new JSDOM(
     '<div id="app"></div><div id="overlay-root"></div><div id="toast-root"></div>',
     {
@@ -117,59 +117,37 @@ test("connected demo presents a neutral workspace and switches its metrics witho
   w.createAdaptiveDashboard = createAdaptiveDashboard;
   w.createUploadManager = createUploadManager;
   w.fetch = async () => {};
-  w.apiRequest = async () => ({
-    backend: true,
-    database: false,
-    ai: false,
-    cloud: { configured: false },
-  });
+  const requests = [];
+  w.apiRequest = async (path) => {
+    requests.push(path);
+    return {
+      backend: true,
+      database: false,
+      ai: false,
+      cloud: { configured: false },
+    };
+  };
   w.scrollTo = () => {};
   w.HTMLElement.prototype.scrollIntoView = () => {};
   const source =
-    "const {products:seedProducts,production:seedProduction,initialFiles,seedOrders,parseCSV,detectMapping,normalizeRows,upsertOrders,metricSummary}=window.fixture;const apiRequest=window.apiRequest;const createUploadManager=window.createUploadManager;const createAdaptiveDashboard=window.createAdaptiveDashboard;\n" +
+    "const {detectMapping,metricSummary}=window.fixture;const apiRequest=window.apiRequest;const createUploadManager=window.createUploadManager;const createAdaptiveDashboard=window.createAdaptiveDashboard;\n" +
     fs.readFileSync("web/app.js", "utf8").replace(/^import[^\n]+\n/gm, "");
-  const wait = async (predicate) => {
-    const deadline = Date.now() + 2000;
-    while (!predicate()) {
-      if (Date.now() > deadline) assert.fail("Adaptive DOM timed out");
-      await new Promise((r) => setTimeout(r, 10));
-    }
-  };
   try {
     w.eval(source);
-    await wait(
-      () =>
-        w.document.querySelector("h1")?.textContent === "Proyek dan layanan",
+    await new Promise((r) => setTimeout(r, 30));
+    assert.deepEqual(requests, ["/status"]);
+    assert.equal(w.document.querySelector("h1").textContent, "Ringkasan data");
+    assert.match(
+      w.document.querySelector("main").textContent,
+      /Dashboard mengikuti data Anda/,
     );
+    assert.equal(w.document.querySelector(".kpi-grid"), null);
+    assert.equal(w.document.querySelector("#adaptive-source"), null);
     assert.doesNotMatch(
-      w.document.querySelector(".dashboard-tabs").textContent,
+      w.document.querySelector(".dashboard-tabs")?.textContent || "",
       /Penjualan|Persediaan|Produksi/,
     );
-    assert.match(w.document.querySelector(".kpi-grid").textContent, /Klien/);
-    assert.doesNotMatch(
-      w.document.querySelector(".kpi-grid").textContent,
-      /Stok|Pesanan/,
-    );
-    let sourceControl = w.document.querySelector("#adaptive-source");
-    sourceControl.value = "demo-staff";
-    sourceControl.dispatchEvent(new w.Event("change", { bubbles: true }));
-    await wait(
-      () =>
-        w.document.querySelector("h1")?.textContent === "Tim dan operasional",
-    );
-    assert.match(
-      w.document.querySelector(".kpi-grid").textContent,
-      /Biaya operasional/,
-    );
-    sourceControl = w.document.querySelector("#adaptive-source");
-    sourceControl.value = "demo-reservations";
-    sourceControl.dispatchEvent(new w.Event("change", { bubbles: true }));
-    await wait(
-      () =>
-        w.document.querySelector("h1")?.textContent ===
-        "Reservasi dan akomodasi",
-    );
-    assert.match(w.document.querySelector(".kpi-grid").textContent, /Booking/);
+    assert.equal(w.localStorage.length, 0);
   } finally {
     w.close();
   }

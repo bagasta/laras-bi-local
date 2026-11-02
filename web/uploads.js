@@ -55,7 +55,7 @@ export function createUploadManager(options) {
     openModal(`<div class="modal-header"><div><h2 id="modal-title">Unggah dokumen</h2><p>CSV, Excel, PDF, Word, PowerPoint, TXT, MD · 20 berkas · Total 10 MB</p></div><button class="icon-button" data-action="batch-close" aria-label="Tutup">${icon("close", 18)}</button></div><div class="modal-body multi-body">
    ${batch.message ? `<div class="batch-notice" role="status">${escape(batch.message)}</div>` : ""}
    ${!state.backend?.cloud?.configured && !state.cloud ? `<div class="cloud-connect-prompt"><span>Pemrosesan dokumen memerlukan Supabase. Berkas asli dan data hasil impor disimpan di proyek Supabase Anda, bukan di komputer ini.</span><button class="btn btn-small" data-action="cloud-connect">Hubungkan</button></div>` : ""}
-   <div class="multi-dropzone" id="multi-dropzone"><button class="btn" data-action="batch-pick" ${batch.busy ? "disabled" : ""}>${icon("plus", 14)}Pilih berkas</button><span>atau seret beberapa berkas ke sini</span><input class="hidden" id="multi-file-input" type="file" multiple accept=".csv,.xlsx,.pdf,.docx,.pptx,.txt,.md" ${batch.busy ? "disabled" : ""}><button class="panel-action" data-action="batch-sample" ${batch.busy ? "disabled" : ""}>Contoh CSV</button></div>
+   <div class="multi-dropzone" id="multi-dropzone"><button class="btn" data-action="batch-pick" ${batch.busy ? "disabled" : ""}>${icon("plus", 14)}Pilih berkas</button><span>atau seret beberapa berkas ke sini</span><input class="hidden" id="multi-file-input" type="file" multiple accept=".csv,.xlsx,.pdf,.docx,.pptx,.txt,.md" ${batch.busy ? "disabled" : ""}></div>
    <div class="upload-queue">${items
      .map(
        (
@@ -708,18 +708,6 @@ export function createUploadManager(options) {
       closeModal();
     }
     if (action === "batch-pick") doc.querySelector("#multi-file-input").click();
-    if (action === "batch-sample") {
-      const value =
-        "tanggal,proyek,klien,nilai_kontrak,jam_kerja,status,tenggat\n2026-10-26,Desain layanan,Klien A,200000,4,Berjalan,2026-11-02";
-      const bytes = new TextEncoder().encode(value);
-      addFiles([
-        {
-          name: "contoh_proyek.csv",
-          size: bytes.length,
-          arrayBuffer: async () => bytes.buffer,
-        },
-      ]);
-    }
     if (action === "batch-remove") {
       if (batch.busy) return true;
       const item = batch.items.find((i) => i.key === el.dataset.item);

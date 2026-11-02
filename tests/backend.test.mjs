@@ -10,6 +10,7 @@ import {
   rpcFor,
 } from "../server/infrastructure/supabase.js";
 import { provisionBusiness } from "../server/services/provision.js";
+import { dropFiles, projectCSV, textFile } from "./fixtures/upload-dom.mjs";
 
 const migration = fs.readFileSync(
   new URL("../supabase/migrations/001_laras.sql", import.meta.url),
@@ -595,7 +596,7 @@ test("expired previews cannot be committed and chat limits bound provider spendi
   }
 });
 
-test("cloud frontend replaces demo data and completes CSV approval through the API and database", async () => {
+test("cloud frontend starts empty and completes CSV approval through the API and database", async () => {
   const { JSDOM } = await import("jsdom");
   const { createUploadManager } = await import("../web/uploads.js");
   const { createAdaptiveDashboard } = await import("../web/dashboard.js");
@@ -634,7 +635,7 @@ test("cloud frontend replaces demo data and completes CSV approval through the A
     .readFileSync(new URL("../web/app.js", import.meta.url), "utf8")
     .replace(
       /^import[^\n]+\n/,
-      "const {products:seedProducts,production:seedProduction,initialFiles,seedOrders,parseCSV,detectMapping,normalizeRows,upsertOrders,metricSummary}=window.fixture;\n",
+      "const {detectMapping,metricSummary}=window.fixture;\n",
     )
     .replace(/^import[^\n]+\n/m, "const apiRequest=window.apiRequest;\n")
     .replace(
@@ -668,9 +669,9 @@ test("cloud frontend replaces demo data and completes CSV approval through the A
       w.document.querySelector("main").textContent,
       /Dashboard mengikuti data Anda/,
     );
-    assert.equal(w.localStorage.getItem("laras-demo-v1"), null);
+    assert.equal(w.localStorage.length, 0);
     click('[data-action="upload"]');
-    click('[data-action="batch-sample"]');
+    dropFiles(w, [textFile("proyek.csv", projectCSV)]);
     click('[data-action="batch-process"]');
     await wait(() => w.document.querySelector('[data-action="batch-review"]'));
     click('[data-action="batch-review"]');
@@ -687,7 +688,7 @@ test("cloud frontend replaces demo data and completes CSV approval through the A
       () => w.document.querySelector(".kpi-value")?.title === "Rp 200.000",
     );
     assert.equal((await t.data("/api/workspace")).datasets[0].row_count, 1);
-    assert.equal(w.localStorage.getItem("laras-demo-v1"), null);
+    assert.equal(w.localStorage.length, 0);
     w.location.hash = "chat";
     await wait(() => w.document.querySelector("#chat-input"));
     const input = w.document.querySelector("#chat-input");
@@ -704,7 +705,7 @@ test("cloud frontend replaces demo data and completes CSV approval through the A
     );
     assert.match(
       w.document.querySelector(".answer-source").textContent,
-      /contoh_proyek.csv/,
+      /proyek.csv/,
     );
   } finally {
     dom.window.close();
