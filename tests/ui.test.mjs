@@ -372,3 +372,21 @@ test("dashboard channel breakdown follows period filters and its question opens 
   );
   dom.window.close();
 });
+
+test("demo mode explains setup steps and where data is stored", async () => {
+  const dom = setup();
+  const w = dom.window;
+  const guide = w.document.querySelector(".setup-guide");
+  assert.ok(guide, "setup guide is visible in demo mode");
+  assert.match(guide.textContent, /data contoh/);
+  assert.match(guide.querySelector(".setup-progress").textContent, /0\/3/);
+  assert.ok(guide.querySelector('[data-action="cloud-connect"]'));
+  click(w, '.setup-guide [data-action="data-location"]');
+  const dialog = w.document.querySelector('[role="dialog"]');
+  assert.match(dialog.textContent, /Supabase/);
+  assert.match(dialog.textContent, /\.laras\//);
+  click(w, '[data-action="close-modal"]');
+  await route(w, "settings");
+  assert.match(w.document.querySelector("main").textContent, /Lokasi data/);
+  dom.window.close();
+});
