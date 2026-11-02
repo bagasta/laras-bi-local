@@ -54,12 +54,12 @@ function setupGuide() {
   if(state.cloud&&state.files.length)return '';
   const b=state.backend;
   const steps=[
-    ['Hubungkan Supabase','Buat akun Supabase gratis, lalu tempel Personal Access Token. Laras menyiapkan satu proyek database untuk bisnis Anda.',!!(state.cloud||b?.cloud?.configured),'cloud-connect','Hubungkan'],
-    ['Unggah data bisnis','CSV, Excel, PDF, Word, atau PowerPoint. Kolom ditinjau dulu sebelum impor disetujui.',state.cloud&&state.files.length>0,'upload','Unggah'],
-    ['Hubungkan AI (opsional)','ChatGPT atau OpenRouter. Tanpa AI, Chat with Data tetap menjawab dengan analisis berbasis aturan.',!!(b?.ai||b?.chatgpt?.account?.connected),b?.chatgpt?'chatgpt-connect':'ai-connect','Hubungkan']
+    ['Hubungkan Supabase','Personal access token. Satu proyek database untuk bisnis ini.',!!(state.cloud||b?.cloud?.configured),'cloud-connect','Hubungkan'],
+    ['Unggah data','CSV, Excel, PDF, Word, atau PowerPoint. Ditinjau sebelum disimpan.',state.cloud&&state.files.length>0,'upload','Unggah'],
+    ['Model bahasa, opsional','ChatGPT atau OpenRouter. Tanpa ini, pertanyaan dijawab dari perhitungan data.',!!(b?.ai||b?.chatgpt?.account?.connected),b?.chatgpt?'chatgpt-connect':'ai-connect','Hubungkan']
   ];
   const done=steps.filter(s=>s[2]).length;
-  return `<section class="setup-guide" aria-labelledby="setup-guide-title"><div class="setup-guide-head"><div><h2 id="setup-guide-title">${state.cloud?'Lanjutkan penyiapan':'Belum ada data bisnis'}</h2><p>${state.cloud?'Supabase sudah terhubung. Unggah data bisnis agar dashboard dan Chat with Data memakai angka Anda.':'Dashboard akan terisi setelah Supabase terhubung dan data bisnis Anda diunggah.'}</p></div><span class="setup-progress">${done}/${steps.length} selesai</span></div><ol class="setup-steps">${steps.map(([title,text,ok,action,label],i)=>`<li class="${ok?'done':''}"><span class="setup-index">${ok?icon('check',12):i+1}</span><span class="setup-text"><strong>${title}</strong><small>${text}</small></span>${ok?badge('Selesai'):`<button class="btn btn-small" data-action="${action}">${label}</button>`}</li>`).join('')}</ol><button class="panel-action" data-action="data-location">Di mana data saya disimpan? ${icon('arrow',11)}</button></section>`;
+  return `<section class="setup-guide" aria-labelledby="setup-guide-title"><div class="setup-guide-head"><div><h2 id="setup-guide-title">${state.cloud?'Lanjutkan penyiapan':'Belum ada data bisnis'}</h2><p>${state.cloud?'Supabase sudah terhubung. Unggah data bisnis agar dashboard dan Chat with Data memakai angka Anda.':'Hubungkan database, lalu unggah berkas. Angka di dashboard berasal dari berkas itu.'}</p></div><span class="setup-progress">${done}/${steps.length} selesai</span></div><ol class="setup-steps">${steps.map(([title,text,ok,action,label],i)=>`<li class="${ok?'done':''}"><span class="setup-index">${ok?icon('check',12):i+1}</span><span class="setup-text"><strong>${title}</strong><small>${text}</small></span>${ok?badge('Selesai'):`<button class="btn btn-small" data-action="${action}">${label}</button>`}</li>`).join('')}</ol><button class="panel-action" data-action="data-location">Di mana data saya disimpan? ${icon('arrow',11)}</button></section>`;
 }
 function dataLocationRows() {
   const rows=[

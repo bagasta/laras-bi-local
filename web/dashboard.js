@@ -153,7 +153,7 @@ export function createAdaptiveDashboard(options) {
     }</tbody></table></div>${full ? `<div class="table-footer"><span>${data.total ? data.offset + 1 : 0}–${data.offset + rows.length} dari ${data.total}</span><div><button class="btn btn-small" data-action="adaptive-previous" ${!data.offset ? "disabled" : ""}>Sebelumnya</button><button class="btn btn-small" data-action="adaptive-next" ${data.offset + 50 >= data.total ? "disabled" : ""}>Berikutnya</button></div></div>` : ""}</section>`;
   }
   function empty() {
-    return `<div class="page-heading"><h1>Ringkasan data</h1><button class="btn btn-primary" data-action="upload">${icon("plus", 14)}Unggah data</button></div>${options.setup?.() || ""}<section class="panel adaptive-empty">${icon("data", 32)}<h2>Dashboard mengikuti data Anda</h2><p>Unggah dokumen untuk membentuk metrik dan grafik.</p><button class="btn" data-action="upload">Pilih dokumen</button></section>`;
+    return `<div class="page-heading"><h1>Ringkasan data</h1><button class="btn btn-primary" data-action="upload">${icon("plus", 14)}Unggah data</button></div>${options.setup?.() || ""}<section class="panel adaptive-empty"><h2>Belum ada metrik</h2><p>Unggah dokumen. Metrik dan grafik dibentuk dari kolom yang ada.</p><button class="btn" data-action="upload">Pilih dokumen</button></section>`;
   }
   function overview() {
     const model = state.adaptive;

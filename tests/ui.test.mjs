@@ -57,7 +57,7 @@ test("without data every page renders empty and nothing is stored in the browser
   assert.equal(w.document.querySelector("h1").textContent, "Ringkasan data");
   assert.match(
     w.document.querySelector("main").textContent,
-    /Dashboard mengikuti data Anda/,
+    /Belum ada metrik/,
   );
   assert.equal(w.document.querySelector(".kpi-grid"), null);
   assert.match(

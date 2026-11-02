@@ -139,7 +139,7 @@ test("a backend without a database shows an empty dashboard and no sample data",
     assert.equal(w.document.querySelector("h1").textContent, "Ringkasan data");
     assert.match(
       w.document.querySelector("main").textContent,
-      /Dashboard mengikuti data Anda/,
+      /Belum ada metrik/,
     );
     assert.equal(w.document.querySelector(".kpi-grid"), null);
     assert.equal(w.document.querySelector("#adaptive-source"), null);

@@ -667,7 +667,7 @@ test("cloud frontend starts empty and completes CSV approval through the API and
     );
     assert.match(
       w.document.querySelector("main").textContent,
-      /Dashboard mengikuti data Anda/,
+      /Belum ada metrik/,
     );
     assert.equal(w.localStorage.length, 0);
     click('[data-action="upload"]');
